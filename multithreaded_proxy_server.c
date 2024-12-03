@@ -17,9 +17,9 @@
 #include <time.h>
 
 #define MAX_BYTES 4096    //max allowed size of request/response
-#define MAX_CLIENTS 400     //max number of client requests served at a time
+#define MAX_CLIENTS 10     //max number of client requests served at a time
 #define MAX_SIZE 200*(1<<20)     //size of the cache
-#define MAX_ELEMENT_SIZE 10*(1<<20)     //max size of an element in cache
+#define MAX_ELEMENT_SIZE 10*(1<<20)     // max size of an element in cache
 
 typedef struct cache_element cache_element;
 
@@ -124,7 +124,7 @@ int connectRemoteServer(char* host_addr, int port_num)
 
 	bcopy((char *)host->h_addr,(char *)&server_addr.sin_addr.s_addr,host->h_length);
 
-	// Connect to Remote server ----------------------------------------------------
+	// Connect to Remote server
 
 	if( connect(remoteSocket, (struct sockaddr*)&server_addr, (socklen_t)sizeof(server_addr)) < 0 )
 	{
@@ -143,7 +143,7 @@ int handle_request(int clientSocket, ParsedRequest *request, char *tempReq)
     strcat(buf, request->path);
     strcat(buf, " ");
     strcat(buf, request->version);
-    strcat(buf, "\r\n");
+    strcat(buf1, "\r\n");
 
     size_t len = strlen(buf);
 
@@ -261,9 +261,6 @@ void* thread_fn(void* socketNew)
 		}
 	}
 
-	// printf("--------------------------------------------\n");
-	// printf("%s\n",buffer);
-	// printf("----------------------%d----------------------\n",strlen(buffer));
 	
 	char *tempReq = (char*)malloc(strlen(buffer)*sizeof(char)+1);
     //tempReq, buffer both store the http request sent by client
@@ -275,7 +272,7 @@ void* thread_fn(void* socketNew)
 	//checking for the request in cache 
 	struct cache_element* temp = find(tempReq);
 
-	if( temp != NULL){
+	if(temp != NULL){
         //request found in cache, so sending the response to client from proxy's cache
 		int size=temp->len/sizeof(char);
 		int pos=0;
@@ -368,19 +365,19 @@ int main(int argc, char * argv[]) {
     pthread_mutex_init(&lock,NULL); // Initializing lock for cache
     
 
-	if(argc == 2)        //checking whether two arguments are received or not
+	if(argc == 2)        // checking whether two arguments are received or not
 	{
 		port_number = atoi(argv[1]);
 	}
 	else
 	{
-		printf("Too few arguments\n");
+		printf("Too few arguments...\n");
 		exit(1);
 	}
 
 	printf("Setting Proxy Server Port : %d\n",port_number);
 
-    //creating the proxy socket
+    // creating the proxy socket
 	proxy_socketId = socket(AF_INET, SOCK_STREAM, 0);
 
 	if( proxy_socketId < 0)
@@ -389,7 +386,7 @@ int main(int argc, char * argv[]) {
 		exit(1);
 	}
 
-	int reuse =1;
+	int reuse = 1;
 	if (setsockopt(proxy_socketId, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0) 
         perror("setsockopt(SO_REUSEADDR) failed\n");
 
